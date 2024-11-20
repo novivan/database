@@ -15,7 +15,7 @@ namespace memdb {
             if (tables.find(name) != tables.end()) {
                 throw std::runtime_error("Table already exists");
             }
-            tables[name] = Table{schema};
+            tables[name] = (Table){schema};
         }
 
         // TODO: Реализовать методы drop_table, execute
