@@ -1,6 +1,6 @@
 #include <iostream>
-#include "database.h"
-#include "query_condition.h"
+#include "../include/database.h"
+#include "../include/query_condition.h"
 
 void print_table(const memdb::Table& table) {
     for (const auto& row : table.rows) {
