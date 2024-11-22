@@ -38,7 +38,7 @@ namespace memdb {
                     pos += lowercase_keyword.size(); 
                 }
             }
-    return result;
+            return result;
         }
         std::tuple<Query, QueryCondition> split_into_query_cond(std::string str){
             std::string normal_str = to_lower_case(str);
