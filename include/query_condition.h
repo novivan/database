@@ -32,6 +32,8 @@ namespace memdb {
         QueryCondition* left = nullptr;
         QueryCondition* right = nullptr;
 
+        QueryCondition() = default;
+
         QueryCondition(const std::string& column_name, Operator op, const Value& value)
             : column_name(column_name), op(op), value(value), left(nullptr), right(nullptr) {}
 

@@ -6,6 +6,7 @@
 #include "row.h"
 #include "table_schema.h"
 #include "query_condition.h"
+#include "query.h"
 
 namespace memdb {
 
