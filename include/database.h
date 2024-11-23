@@ -26,9 +26,8 @@ namespace memdb {
 
         void translate_n_execute(std::string query) {
             Query qry;
-            QueryCondition cond;
+            std::shared_ptr<QueryCondition> cond;
             std::tie(qry, cond) = parser.split_into_query_cond(query);
-            
 
             // для всего, что выдает query нужно проверить условие (вот пример из main):
             /*
