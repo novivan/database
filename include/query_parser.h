@@ -14,12 +14,14 @@ namespace memdb {
     class Query;
     class QueryCondition;
 
+    QueryCondition condition_tree(const std::string& condition_str);
+    Query parse_query(const std::string& str);
+
     class QueryParser {
        
     public:
         // QueryParser() = default;
-        QueryCondition condition_tree(const std::string& condition_str);
-        Query parse_query(const std::string& str);
+        
         std::string to_lower_case(const std::string& input){
             std::string result = input;
             std::vector<std::string> keywords = std::vector<std::string>();

@@ -78,6 +78,9 @@ namespace memdb {
         }
     };
 
+
+    
+
 } // namespace memdb
 
 #endif // QUERY_CONDITION_H
