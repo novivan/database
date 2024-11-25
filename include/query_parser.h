@@ -1,30 +1,36 @@
 #ifndef QUERY_PARSER_H
 #define QUERY_PARSER_H
 
-#include "query.h"
-#include "query_condition.h"
-
-
-
 #include <string>
-#include <tuple>
+#include <vector>
+#include <map>
 
+struct ParsedQuery {
+    std::string queryType;                 // Тип запроса: SELECT, INSERT, DELETE, и т.д.
+    std::string targetTable;               // Целевая таблица
+    std::vector<std::string> columns;      // Колонки для выборки или вставки
+    std::vector<std::string> values;       // Значения для вставки (INSERT)
+    std::string condition;                 // Условие фильтрации (WHERE)
+};
 
-namespace memdb {
-    class Query;
-    class QueryCondition;
+class QueryParser {
+public:
+    ParsedQuery parseQuery(const std::string& query);
 
-    class QueryParser {
-       
-    public:
-        // QueryParser() = default;
-        std::tuple<Query, QueryCondition> split_into_query_cond(std::string str); //по сути самое сложное
-        //TODO: разбить на запрос и его условие(грубо говоря по слову "where")
-        // дальше из условия построить дерево condition'ов
-        //query прсто составить надо
-        
-    };
+    const std::vector<std::string>& getErrors() const;
 
-} // namespace memdb
+private:
+    bool validateSyntax(const std::string& query);
+
+    std::vector<std::string> errors;
+
+    ParsedQuery handleSelect(const std::string& query);
+    ParsedQuery handleInsert(const std::string& query);
+    ParsedQuery handleDelete(const std::string& query);
+    ParsedQuery handleCreateTable(const std::string& query);
+
+    std::vector<std::string> split(const std::string& str, char delimiter);
+    std::string trim(const std::string& str);
+};
 
 #endif // QUERY_PARSER_H
