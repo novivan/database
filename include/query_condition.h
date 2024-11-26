@@ -7,8 +7,10 @@
 #include <memory>
 #include "row.h"
 #include "value.h"
-
+#include <stack>
+#include <sstream>
 namespace memdb {
+    class QueryCondition;
     enum class CompareOperator {
         DEFAULT,
         EQUAL,
@@ -80,6 +82,7 @@ namespace memdb {
     bool isMathOperator(const std::string &token) {
         return token == "+" || token == "-" || token == "*" || token == "/" || token == "%";
     }
+
     class QueryCondition {
     public:
         std::string column_name; //если сейчас в condition название колонки
@@ -94,7 +97,7 @@ namespace memdb {
         explicit QueryCondition(LogicalOperator logical_op) : logical_op(logical_op) {};
         explicit QueryCondition(CompareOperator op) : op(op) {};
         explicit QueryCondition(MathOperator math_op) : math_op(math_op) {};
-        QueryCondition(std::string& val, std::string& position) {
+        QueryCondition(const std::string& val, const std::string& position) {
             if (position == "left") {
                 column_name = val;
             } else if (position == "right") {
@@ -103,9 +106,74 @@ namespace memdb {
         }
     };
 
+    std::vector<std::string> tokenize(const std::string &tokens_in_str) {
+        std::vector<std::string> tokens;
+        std::istringstream iss(tokens_in_str);
+        for (std::string s; iss >> s;) {
+            tokens.push_back(s);
+        }
+        return tokens;
+    }
 
-    
+    std::stack<std::string> get_polish_notation(const std::string &condition_str) {
+        std::vector<std::string> tokens = tokenize(condition_str);
+        std::stack<std::string> polish_notation;
+        std::stack<std::string> operations;
+        for (const auto &token: tokens) {
+            if (isLogicalOperator(token) || isCompareOperator(token) || isMathOperator(token)) {
+                while (!operations.empty() && priority[operations.top()] <= priority[token]) {
+                    polish_notation.push(operations.top());
+                    operations.pop();
+                }
+                operations.push(token);
+            } else if (token == "(") {
+                operations.push(token);
+            } else if (token == ")") {
+                while (operations.top() != "(") {
+                    polish_notation.push(operations.top());
+                    operations.pop();
+                }
+                operations.pop();
+            } else {
+                polish_notation.push(token);
+            }
+        }
+        while (!operations.empty()) {
+            polish_notation.push(operations.top());
+            operations.pop();
+        }
+        return polish_notation;
+    }
 
+    std::shared_ptr<QueryCondition> build_condition_tree(std::stack<std::string> &cur, const std::string &which_side = "") {
+        if (cur.empty()) {
+            return nullptr;
+        }
+        std::string token = cur.top();
+        cur.pop();
+        std::shared_ptr<QueryCondition> node;
+        if (isLogicalOperator(token)) {
+            node = std::make_shared<QueryCondition>(logical_str_to_enum[token]);
+            node->left = build_condition_tree(cur, "left");
+            node->right = build_condition_tree(cur, "right");
+        } else if (isCompareOperator(token)) {
+            node = std::make_shared<QueryCondition>(compare_str_to_enum[token]);
+            node->left = build_condition_tree(cur, "left");
+            node->right = build_condition_tree(cur, "right");
+        } else if (isMathOperator(token)) {
+            node = std::make_shared<QueryCondition>(math_str_to_enum[token]);
+            node->left = build_condition_tree(cur, "left");
+            node->right = build_condition_tree(cur, "right");
+        } else {
+            node = std::make_shared<QueryCondition>(token, which_side);
+        }
+        return node;
+    }
+
+    std::shared_ptr<QueryCondition> get_condition_tree(const std::string &str) {
+        std::stack<std::string> polish_notation = get_polish_notation(str);
+        return build_condition_tree(polish_notation);
+    }
 } // namespace memdb
 
 #endif // QUERY_CONDITION_H
