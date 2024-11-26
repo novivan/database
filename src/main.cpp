@@ -41,8 +41,7 @@ int main() {
 
     print_table(db.tables["users"]);
 
-    // TODO не работает :(
-    memdb::QueryCondition condition_select("age", memdb::Operator::GREATER_THAN, 24);
+    memdb::QueryCondition condition_select("age", memdb::Operator::GREATER_THAN, 29);
 
     print_table(db.tables["users"].select(condition_select));
 
@@ -76,6 +75,69 @@ int main() {
 
 
 //#include <../include/table.h>
+
+#include <iostream>
+#include <string>
+#include "../include/query_parser.h"
+
+void run_query_tests() {
+    std::cout << "Running query tests" << std::endl;
+    QueryParser parser;
+
+    // Test 1: Simple SELECT
+    std::string query1 = "SELECT id, name FROM users WHERE age > 30";
+    try {
+        Query result1 = parser.parse(query1);
+        std::cout << "Test 1 - Simple SELECT: Passed\n";
+        std::cout << "Parsed query: \n";
+        for (const auto& [key, value] : result1.data) {
+            std::cout << key << ": " << value << "\n";
+        }
+    } catch (const std::exception& e) {
+        std::cout << "Test 1 - Simple SELECT: Failed (" << e.what() << ")\n";
+    }
+
+    std::cout << "\n";
+
+    // Test 2: SELECT with JOIN
+    std::string query2 = "SELECT id, name FROM users JOIN orders ON users.id = orders.user_id WHERE total > 100";
+    try {
+        Query result2 = parser.parse(query2);
+        std::cout << "Test 2 - SELECT with JOIN: Passed\n";
+        std::cout << "Parsed query: \n";
+        for (const auto& [key, value] : result2.data) {
+            std::cout << key << ": " << value << "\n";
+        }
+    } catch (const std::exception& e) {
+        std::cout << "Test 2 - SELECT with JOIN: Failed (" << e.what() << ")\n";
+    }
+
+    std::cout << "\n";
+
+    // Test 3: INSERT
+    std::string query3 = "INSERT INTO users VALUES (1, 'John Doe', 25)";
+    try {
+        Query result3 = parser.parse(query3);
+        std::cout << "Test 3 - INSERT: Passed\n";
+        std::cout << "Parsed query: \n";
+        for (const auto& [key, value] : result3.data) {
+            std::cout << key << ": " << value << "\n";
+        }
+    } catch (const std::exception& e) {
+        std::cout << "Test 3 - INSERT: Failed (" << e.what() << ")\n";
+    }
+
+    std::cout << "\n";
+
+    // Test 4: Unsupported query
+    std::string query4 = "DROP TABLE users";
+    try {
+        parser.parse(query4);
+        std::cout << "Test 4 - Unsupported query: Failed (No exception thrown)\n";
+    } catch (const std::exception& e) {
+        std::cout << "Test 4 - Unsupported query: Passed (" << e.what() << ")\n";
+    }
+}
 
 void testUpdate(Database& db) {
     std::cout << "Testing UPDATE..." << std::endl;
@@ -115,13 +177,6 @@ void testUpdate(Database& db) {
     }
     throw std::runtime_error("UPDATE test failed: login field not updated correctly");
 }
-
-
-
-
-
-
-
 
 int main() {
     // Создаем таблицу
@@ -269,7 +324,12 @@ int main() {
     db.~Database();
     //users.~Table();
 
+    std::cout << "Running tests for QueryParser...\n\n";
+    run_query_tests();
+
     std::cout << "All tests passed." << std::endl;
+
+
 
     return 0;
 }

@@ -1,54 +1,34 @@
 #ifndef QUERY_H
 #define QUERY_H
-/*
+
 #include <string>
-#include <functional>
-#include "column.h"
-#include "cells.h"
+#include <map>
 
-namespace memdb {
-    //для удобства
-    //для удобства
-    char
-    *Create = "create", 
-    *Table = "table",
-    *Select = "select",
-    *Insert = "insert",
-    *Update = "update",
-    *Delete = "delete",
-    *Join = "join",
-    *Index = "index",
-    *From = "from",
-    *Where = "where",
-    *Primary = "primary",
-    *Key = "key",
-    *Unique = "unique",
-    *Autoincrement = "autoincrement",
-    *To = "to",
-    *Set = "set",
-    *On = "on",
-    *By = "by",
-    *Int = "int32",
-    *Bool = "bool",
-    *String = "string",
-    *Bytes = "bytes";
+class Query {
+public:
+    std::string type;
+    std::map<std::string, std::string> data;
 
-    std::vector <char *> Keywords = 
-    {Create, Table, Select, Insert, Update, Delete, Join, Index,
-    From, Where, Primary, Key, Unique, Autoincrement, To, Set,
-    On, By, Int, Bool, String, Bytes};
-    
-    class Query {
-    public:
-        char* type;
-        std::vector <std::string> first_operands; //example - select ROW_A, ROW_B, from table_a, table_b (большими буквами то, что идет в переменную)
-        std::vector <std::string> second_operands; //example - select row_a, row_b, from TABLE_A, TABLE_B (большими буквами то, что идет в переменную)
+    Query(const std::string& query_type, const std::map<std::string, std::string>& query_data)
+        : type(query_type), data(query_data) {}
 
-        Query() = default;
-        Query(std::string & op, std::vector<std::string> &first_param, std::vector <std::string> &sec_param): type(op), first_operands(first_param), second_operands(sec_param){}
-        
-    };
+    Query() = default;
 
-} // namespace memdb
-*/
+    std::string get(const std::string& key) const {
+        auto it = data.find(key);
+        if (it != data.end()) {
+            return it->second;
+        }
+        return {};
+    }
+
+    void set(const std::string& key, const std::string& value) {
+        data[key] = value;
+    }
+
+    bool has(const std::string& key) const {
+        return data.find(key) != data.end();
+    }
+};
+
 #endif // QUERY_H
