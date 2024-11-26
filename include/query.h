@@ -2,32 +2,43 @@
 #define QUERY_H
 
 #include <string>
-#include <map>
+#include <vector>
 
-class Query {
-public:
-    std::string type;
-    std::map<std::string, std::string> data;
+struct Query {
+    std::string type;                    // Тип запроса (например, "select")
+    std::vector<std::string> columns;    // Список столбцов
+    std::string table;                   // Имя таблицы
+    std::vector<std::string> join;       // Условия соединения (JOIN)
+    std::vector<std::string> where;      // Условия фильтрации (WHERE)
 
-    Query(const std::string& query_type, const std::map<std::string, std::string>& query_data)
-        : type(query_type), data(query_data) {}
+    // Конструктор с параметрами
+    Query(const std::string& query_type,
+          const std::vector<std::string>& query_columns,
+          const std::string& query_table,
+          const std::vector<std::string>& query_join,
+          const std::vector<std::string>& query_where)
+        : type(query_type), columns(query_columns), table(query_table), join(query_join), where(query_where) {}
 
-    Query() = default;
+    // Конструктор по умолчанию
+    Query() : type(""), table("") {}
 
-    std::string get(const std::string& key) const {
-        auto it = data.find(key);
-        if (it != data.end()) {
-            return it->second;
+    // Метод для отладки и вывода данных
+    void print() const {
+        std::cout << "Query type: " << type << "\n";
+        std::cout << "Columns: ";
+        for (const auto& col : columns) {
+            std::cout << col << " ";
         }
-        return {};
-    }
-
-    void set(const std::string& key, const std::string& value) {
-        data[key] = value;
-    }
-
-    bool has(const std::string& key) const {
-        return data.find(key) != data.end();
+        std::cout << "\nTable: " << table << "\n";
+        std::cout << "Join: ";
+        for (const auto& j : join) {
+            std::cout << j << " ";
+        }
+        std::cout << "\nWhere: ";
+        for (const auto& w : where) {
+            std::cout << w << " ";
+        }
+        std::cout << "\n";
     }
 };
 
