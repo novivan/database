@@ -35,14 +35,26 @@ namespace memdb {
 
     private:
         Query parse_select(std::istringstream& stream) {
-            std::string columns, from, table, where_clause;
+            std::string columns, from, table, join_clause, where_clause;
             std::getline(stream, columns, ' ');
             stream >> from >> table;
+
+            if (stream.peek() != EOF) {
+                std::string join_keyword;
+                stream >> join_keyword;
+                if (join_keyword == "join") {
+                    std::string join_table, on_keyword, join_condition;
+                    stream >> join_table >> on_keyword;
+                    std::getline(stream, join_condition);
+                    join_clause = "join " + join_table + " on " + join_condition;
+                }
+            }
+
             std::getline(stream, where_clause);
 
             return Query{
                 "select",
-                {{"columns", columns}, {"table", table}, {"where", where_clause}}
+                {{"columns", columns}, {"table", table}, {"join", join_clause}, {"where", where_clause}}
             };
         }
 
