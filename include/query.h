@@ -1,10 +1,10 @@
 #ifndef QUERY_H
 #define QUERY_H
-
+/*
 #include <string>
 #include <functional>
-#include "row.h"
-#include "value.h"
+#include "column.h"
+#include "cells.h"
 
 namespace memdb {
     //для удобства
@@ -50,5 +50,5 @@ namespace memdb {
     };
 
 } // namespace memdb
-
+*/
 #endif // QUERY_H
