@@ -1,54 +1,45 @@
 #ifndef QUERY_H
 #define QUERY_H
-/*
+
 #include <string>
-#include <functional>
-#include "column.h"
-#include "cells.h"
+#include <vector>
 
-namespace memdb {
-    //для удобства
-    //для удобства
-    char
-    *Create = "create", 
-    *Table = "table",
-    *Select = "select",
-    *Insert = "insert",
-    *Update = "update",
-    *Delete = "delete",
-    *Join = "join",
-    *Index = "index",
-    *From = "from",
-    *Where = "where",
-    *Primary = "primary",
-    *Key = "key",
-    *Unique = "unique",
-    *Autoincrement = "autoincrement",
-    *To = "to",
-    *Set = "set",
-    *On = "on",
-    *By = "by",
-    *Int = "int32",
-    *Bool = "bool",
-    *String = "string",
-    *Bytes = "bytes";
+struct Query {
+    std::string type;                    // Тип запроса (например, "select")
+    std::vector<std::string> columns;    // Список столбцов
+    std::string table;                   // Имя таблицы
+    std::vector<std::string> join;       // Условия соединения (JOIN)
+    std::vector<std::string> where;      // Условия фильтрации (WHERE)
 
-    std::vector <char *> Keywords = 
-    {Create, Table, Select, Insert, Update, Delete, Join, Index,
-    From, Where, Primary, Key, Unique, Autoincrement, To, Set,
-    On, By, Int, Bool, String, Bytes};
-    
-    class Query {
-    public:
-        char* type;
-        std::vector <std::string> first_operands; //example - select ROW_A, ROW_B, from table_a, table_b (большими буквами то, что идет в переменную)
-        std::vector <std::string> second_operands; //example - select row_a, row_b, from TABLE_A, TABLE_B (большими буквами то, что идет в переменную)
+    // Конструктор с параметрами
+    Query(const std::string& query_type,
+          const std::vector<std::string>& query_columns,
+          const std::string& query_table,
+          const std::vector<std::string>& query_join,
+          const std::vector<std::string>& query_where)
+        : type(query_type), columns(query_columns), table(query_table), join(query_join), where(query_where) {}
 
-        Query() = default;
-        Query(std::string & op, std::vector<std::string> &first_param, std::vector <std::string> &sec_param): type(op), first_operands(first_param), second_operands(sec_param){}
-        
-    };
+    // Конструктор по умолчанию
+    Query() : type(""), table("") {}
 
-} // namespace memdb
-*/
+    // Метод для отладки и вывода данных
+    void print() const {
+        std::cout << "Query type: " << type << "\n";
+        std::cout << "Columns: ";
+        for (const auto& col : columns) {
+            std::cout << col << " ";
+        }
+        std::cout << "\nTable: " << table << "\n";
+        std::cout << "Join: ";
+        for (const auto& j : join) {
+            std::cout << j << " ";
+        }
+        std::cout << "\nWhere: ";
+        for (const auto& w : where) {
+            std::cout << w << " ";
+        }
+        std::cout << "\n";
+    }
+};
+
 #endif // QUERY_H
