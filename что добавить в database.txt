@@ -7,9 +7,6 @@
 
     class Database {
     public:
-        
-
-        QueryParser parser;
 
         void create_table(const std::string& name, const TableSchema& schema) {
             if (tables.find(name) != tables.end()) {
