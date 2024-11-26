@@ -1,0 +1,11 @@
+2
+products,3,2
+price,0,product_name,2,product_id,0,
+1000,Laptop,1,
+500,Smartphone,2,
+
+users,4,2
+is_admin,1,password_hash,3,login,2,id,0,
+0,11011110101011011011111011101111,vasya,1,
+1,11001010111111101011101010111110,admin,2,
+
