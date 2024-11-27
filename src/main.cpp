@@ -81,63 +81,74 @@ int main() {
 #include "../include/query_parser.h"
 
 void run_query_tests() {
-    std::cout << "Running query tests" << std::endl;
     QueryParser parser;
 
     // Test 1: Simple SELECT
-    std::string query1 = "SELECT id, name FROM users WHERE age > 30";
+    std::cout << "Test 1: SELECT id, name FROM users WHERE age > 30\n";
     try {
-        Query result1 = parser.parse(query1);
-        std::cout << "Test 1 - Simple SELECT: Passed\n";
-        std::cout << "Parsed query: \n";
-        for (const auto& [key, value] : result1.data) {
-            std::cout << key << ": " << value << "\n";
-        }
+        std::unique_ptr<Query> query = parser.parse("SELECT id, name FROM users WHERE age > 30");
+        query->print();
     } catch (const std::exception& e) {
-        std::cout << "Test 1 - Simple SELECT: Failed (" << e.what() << ")\n";
+        std::cout << "Test 1 Failed: " << e.what() << "\n";
     }
 
     std::cout << "\n";
 
     // Test 2: SELECT with JOIN
-    std::string query2 = "SELECT id, name FROM users JOIN orders ON users.id = orders.user_id WHERE total > 100";
+    std::cout << "Test 2: SELECT id, name FROM users JOIN orders ON users.id = orders.user_id WHERE total > 100\n";
     try {
-        Query result2 = parser.parse(query2);
-        std::cout << "Test 2 - SELECT with JOIN: Passed\n";
-        std::cout << "Parsed query: \n";
-        for (const auto& [key, value] : result2.data) {
-            std::cout << key << ": " << value << "\n";
-        }
+        std::unique_ptr<Query> query = parser.parse(
+            "SELECT id, name FROM users JOIN orders ON users.id = orders.user_id WHERE total > 100");
+        query->print();
     } catch (const std::exception& e) {
-        std::cout << "Test 2 - SELECT with JOIN: Failed (" << e.what() << ")\n";
+        std::cout << "Test 2 Failed: " << e.what() << "\n";
     }
 
     std::cout << "\n";
 
     // Test 3: INSERT
-    std::string query3 = "INSERT INTO users VALUES (1, 'John Doe', 25)";
+    std::cout << "Test 3: INSERT INTO users (id, name, age) VALUES (1, 'John Doe', 25)\n";
     try {
-        Query result3 = parser.parse(query3);
-        std::cout << "Test 3 - INSERT: Passed\n";
-        std::cout << "Parsed query: \n";
-        for (const auto& [key, value] : result3.data) {
-            std::cout << key << ": " << value << "\n";
-        }
+        std::unique_ptr<Query> query = parser.parse("INSERT INTO users (id, name, age) VALUES (1, 'John Doe', 25)");
+        query->print();
     } catch (const std::exception& e) {
-        std::cout << "Test 3 - INSERT: Failed (" << e.what() << ")\n";
+        std::cout << "Test 3 Failed: " << e.what() << "\n";
     }
 
     std::cout << "\n";
 
-    // Test 4: Unsupported query
-    std::string query4 = "DROP TABLE users";
+    // Test 4: UPDATE
+    std::cout << "Test 4: UPDATE users SET name = 'John', age = 26 WHERE id = 1\n";
     try {
-        parser.parse(query4);
-        std::cout << "Test 4 - Unsupported query: Failed (No exception thrown)\n";
+        std::unique_ptr<Query> query = parser.parse("UPDATE users SET name = 'John', age = 26 WHERE id = 1");
+        query->print();
     } catch (const std::exception& e) {
-        std::cout << "Test 4 - Unsupported query: Passed (" << e.what() << ")\n";
+        std::cout << "Test 4 Failed: " << e.what() << "\n";
+    }
+
+    std::cout << "\n";
+
+    // Test 5: DELETE
+    std::cout << "Test 5: DELETE FROM users WHERE id = 1\n";
+    try {
+        std::unique_ptr<Query> query = parser.parse("DELETE FROM users WHERE id = 1");
+        query->print();
+    } catch (const std::exception& e) {
+        std::cout << "Test 5 Failed: " << e.what() << "\n";
+    }
+
+    std::cout << "\n";
+
+    // Test 6: Unsupported query
+    std::cout << "Test 6: DROP TABLE users\n";
+    try {
+        parser.parse("DROP TABLE users");
+        std::cout << "Test 6 Failed: No exception thrown\n";
+    } catch (const std::exception& e) {
+        std::cout << "Test 6 Passed: " << e.what() << "\n";
     }
 }
+
 
 void testUpdate(Database& db) {
     std::cout << "Testing UPDATE..." << std::endl;
