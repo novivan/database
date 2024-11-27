@@ -2,43 +2,163 @@
 #define QUERY_H
 
 #include <string>
-#include <vector>
+#include <map>
+#include <iostream>
+#include <memory>
 
-struct Query {
-    std::string type;                    // Тип запроса (например, "select")
-    std::vector<std::string> columns;    // Список столбцов
-    std::string table;                   // Имя таблицы
-    std::vector<std::string> join;       // Условия соединения (JOIN)
-    std::vector<std::string> where;      // Условия фильтрации (WHERE)
+class Query {
+public:
+    virtual ~Query() = default;
+    virtual std::string get_type() const = 0;
+    virtual void print() const = 0;
+    virtual void set_table(const std::string& table) = 0;
+    virtual void set_where(const std::string& condition) = 0;
+};
 
-    // Конструктор с параметрами
-    Query(const std::string& query_type,
-          const std::vector<std::string>& query_columns,
-          const std::string& query_table,
-          const std::vector<std::string>& query_join,
-          const std::vector<std::string>& query_where)
-        : type(query_type), columns(query_columns), table(query_table), join(query_join), where(query_where) {}
+struct JoinClause {
+    std::string table1;
+    std::string table2;
+    std::string condition;
 
-    // Конструктор по умолчанию
-    Query() : type(""), table("") {}
+    JoinClause() = default;
+    JoinClause(const std::string& t1, const std::string& t2, const std::string& cond)
+        : table1(t1), table2(t2), condition(cond) {}
+};
 
-    // Метод для отладки и вывода данных
-    void print() const {
-        std::cout << "Query type: " << type << "\n";
+class SelectQuery : public Query {
+public:
+    std::vector<std::string> columns;
+    std::string table;
+    std::vector<JoinClause> joins;
+    std::string where_conditions;
+
+    SelectQuery() = default;
+
+    std::string get_type() const override { return "SELECT"; }
+
+    void set_columns(const std::vector<std::string>& cols) {
+        columns = cols;
+    }
+
+    void set_join(const std::string& table1, const std::string& table2, const std::string& condition) {
+        joins.emplace_back(table1, table2, condition);
+    }
+
+    void set_where(const std::string& condition) override {
+        where_conditions = condition;
+    }
+
+    void set_table(const std::string& tbl) override {
+        table = tbl;
+    }
+
+    void print() const override {
+        std::cout << "Query Type: SELECT\n";
         std::cout << "Columns: ";
         for (const auto& col : columns) {
             std::cout << col << " ";
         }
         std::cout << "\nTable: " << table << "\n";
-        std::cout << "Join: ";
-        for (const auto& j : join) {
-            std::cout << j << " ";
+        if (!joins.empty()) {
+            std::cout << "Joins:\n";
+            for (const auto& join : joins) {
+                std::cout << "  JOIN " << join.table1 << " WITH " << join.table2
+                          << " ON " << join.condition << "\n";
+            }
         }
-        std::cout << "\nWhere: ";
-        for (const auto& w : where) {
-            std::cout << w << " ";
+        if (!where_conditions.empty()) {
+            std::cout << "Where Conditions: " << where_conditions << "\n";
         }
-        std::cout << "\n";
+    }
+};
+
+class InsertQuery : public Query {
+public:
+    std::string table;
+    std::map<std::string, std::string> values;
+
+    InsertQuery() = default;
+
+    std::string get_type() const override { return "INSERT"; }
+
+    void set_table(const std::string& tbl) override {
+        table = tbl;
+    }
+
+    void set_values(const std::map<std::string, std::string>& vals) {
+        values = vals;
+    }
+
+    void set_where(const std::string&) override {}
+
+    void print() const override {
+        std::cout << "Query Type: INSERT\n";
+        std::cout << "Table: " << table << "\n";
+        std::cout << "Values:\n";
+        for (const auto& [key, value] : values) {
+            std::cout << "  " << key << " = " << value << "\n";
+        }
+    }
+};
+
+class UpdateQuery : public Query {
+public:
+    std::string table;
+    std::map<std::string, std::string> assignments;
+    std::string where_conditions;
+
+    UpdateQuery() = default;
+
+    std::string get_type() const override { return "UPDATE"; }
+
+    void set_table(const std::string& tbl) override {
+        table = tbl;
+    }
+
+    void set_assignments(const std::map<std::string, std::string>& assigns) {
+        assignments = assigns;
+    }
+
+    void set_where(const std::string& condition) override {
+        where_conditions = condition;
+    }
+
+    void print() const override {
+        std::cout << "Query Type: UPDATE\n";
+        std::cout << "Table: " << table << "\n";
+        std::cout << "Assignments:\n";
+        for (const auto& [key, value] : assignments) {
+            std::cout << "  " << key << " = " << value << "\n";
+        }
+        if (!where_conditions.empty()) {
+            std::cout << "Where Conditions: " << where_conditions << "\n";
+        }
+    }
+};
+
+class DeleteQuery : public Query {
+public:
+    std::string table;
+    std::string where_conditions;
+
+    DeleteQuery() = default;
+
+    std::string get_type() const override { return "DELETE"; }
+
+    void set_table(const std::string& tbl) override {
+        table = tbl;
+    }
+
+    void set_where(const std::string& condition) override {
+        where_conditions = condition;
+    }
+
+    void print() const override {
+        std::cout << "Query Type: DELETE\n";
+        std::cout << "Table: " << table << "\n";
+        if (!where_conditions.empty()) {
+            std::cout << "Where Conditions: " << where_conditions << "\n";
+        }
     }
 };
 

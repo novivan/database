@@ -1,111 +1,238 @@
 #ifndef QUERY_PARSER_H
 #define QUERY_PARSER_H
 
-#include <string>
+#include "query.h"
 #include <sstream>
-#include <vector>
-#include <map>
 #include <stdexcept>
+#include <memory>
 #include <algorithm>
-#include <cctype>
-#include <query.h>
+
 class QueryParser {
 public:
-    Query parse(const std::string& input) {
-        if (input.empty()) {
-            throw std::invalid_argument("Empty query string.");
-        }
+    std::unique_ptr<Query> parse(const std::string& query) {
+        std::istringstream stream(query);
+        std::string query_type;
+        stream >> query_type;
+        query_type = to_lower_case(query_type);
 
-        std::istringstream stream(input);
-        std::string keyword;
-        stream >> keyword;
-        keyword = to_lower_case(keyword);
-
-        if (keyword == "select") {
+        if (query_type == "select") {
             return parse_select(stream);
-        } else if (keyword == "insert" || keyword == "update" || keyword == "delete") {
-            throw std::invalid_argument("This parser currently supports SELECT queries only.");
+        } else if (query_type == "insert") {
+            return parse_insert(stream);
+        } else if (query_type == "update") {
+            return parse_update(stream);
+        } else if (query_type == "delete") {
+            return parse_delete(stream);
         } else {
-            throw std::invalid_argument("Unsupported query type: " + keyword);
+            throw std::invalid_argument("Unsupported query type: " + query_type);
         }
     }
 
 private:
-    Query parse_select(std::istringstream& stream) {
-        std::string columns_str, table, join_keyword, join_table, on_keyword, join_condition, where_keyword, where_str;
+    std::unique_ptr<Query> parse_select(std::istringstream& stream) {
+        std::vector<std::string> columns;
+        std::string word;
 
-        // Extract columns
-        std::getline(stream, columns_str, 'F'); // Read until "FROM"
-        columns_str = trim(columns_str);
-        std::vector<std::string> columns = split_by_comma(columns_str);
+        while (stream >> word) {
+            if (to_lower_case(word) == "from") {
+                break;
+            }
+            columns.push_back(remove_quotes_and_commas(word));
+        }
+
         if (columns.empty()) {
-            throw std::invalid_argument("Invalid SELECT query: missing columns.");
+            throw std::invalid_argument("SELECT query missing columns.");
         }
 
-        // Extract table after "FROM"
-        stream.ignore(4); // Skip "FROM"
+        std::string table;
         stream >> table;
-        if (table.empty()) {
-            throw std::invalid_argument("Invalid SELECT query: missing table.");
-        }
 
-        // Check for optional JOIN
-        std::vector<std::string> join_parts;
-        if (stream.peek() != EOF) {
-            stream >> join_keyword;
-            if (to_lower_case(join_keyword) == "join") {
-                stream >> join_table >> on_keyword;
-                on_keyword = to_lower_case(on_keyword);
-                if (join_table.empty() || on_keyword != "on") {
-                    throw std::invalid_argument("Invalid SELECT query: malformed JOIN clause.");
-                }
-                std::getline(stream, join_condition, 'W'); // Read until "WHERE"
-                join_parts.push_back("join " + join_table + " on " + trim(join_condition));
+        auto query = std::make_unique<SelectQuery>();
+        query->set_columns(columns);
+        query->set_table(table);
+
+        std::string next_keyword;
+        while (stream >> next_keyword) {
+            next_keyword = to_lower_case(next_keyword);
+            if (next_keyword == "join") {
+                parse_join(stream, *query);
+            } else if (next_keyword == "where") {
+                parse_where(stream, *query);
+                break;
             } else {
-                // If not JOIN, revert stream position for WHERE handling
-                stream.putback(join_keyword.back());
+                throw std::invalid_argument("Unexpected keyword in SELECT query: " + next_keyword);
             }
         }
 
-        // Extract WHERE clause
-        std::vector<std::string> where_parts;
-        if (stream.peek() != EOF) {
-            std::getline(stream, where_keyword, ' '); // Read "WHERE"
-            if (to_lower_case(where_keyword) == "where") {
-                std::getline(stream, where_str); // Read the rest of the WHERE clause
-                where_parts = split_by_comma(trim(where_str));
-            }
-        }
-
-        return Query("select", columns, table, join_parts, where_parts);
+        return query;
     }
 
-    std::string to_lower_case(const std::string& input) const {
-        std::string result;
-        std::transform(input.begin(), input.end(), std::back_inserter(result), [](unsigned char c) {
-            return std::tolower(c);
-        });
-        return result;
+    std::unique_ptr<Query> parse_insert(std::istringstream& stream) {
+        std::string into_keyword, table, values_str;
+        stream >> into_keyword;
+
+        if (to_lower_case(into_keyword) != "into") {
+            throw std::invalid_argument("INSERT query missing 'INTO' keyword.");
+        }
+
+        stream >> table;
+        std::getline(stream, values_str);
+
+        auto query = std::make_unique<InsertQuery>();
+        query->set_table(table);
+        query->set_values(parse_values(values_str));
+
+        return query;
     }
 
-    std::string trim(const std::string& str) const {
-        const char* whitespace = " \t\n\r\f\v";
-        size_t start = str.find_first_not_of(whitespace);
-        if (start == std::string::npos) {
-            return ""; // All whitespace
+    std::string remove_quotes_and_commas(const std::string& str) {
+        if (str.empty()) {
+            return str;
         }
-        size_t end = str.find_last_not_of(whitespace);
+
+        size_t start = 0;
+        size_t end = str.size() - 1;
+
+        while (start <= end && (str[start] == '\'' || str[start] == '"' || str[start] == ',')) {
+            start++;
+        }
+
+        while (end >= start && (str[end] == '\'' || str[end] == '"' || str[end] == ',')) {
+            end--;
+        }
+
         return str.substr(start, end - start + 1);
     }
 
-    std::vector<std::string> split_by_comma(const std::string& str) const {
-        std::vector<std::string> result;
-        std::istringstream stream(str);
-        std::string token;
-        while (std::getline(stream, token, ',')) {
-            result.push_back(trim(token));
+
+
+    std::unique_ptr<Query> parse_update(std::istringstream& stream) {
+        std::string table, word;
+        stream >> table;
+
+        auto query = std::make_unique<UpdateQuery>();
+        query->set_table(table);
+
+        std::map<std::string, std::string> assignments;
+        while (stream >> word) {
+            if (to_lower_case(word) == "set") {
+                continue;
+            }
+
+            if (to_lower_case(word) == "where") {
+                parse_where(stream, *query);
+                break;
+            }
+
+            size_t eq_pos = word.find('=');
+            if (eq_pos != std::string::npos) {
+                std::string key = trim(word.substr(0, eq_pos));
+                std::string value = trim(word.substr(eq_pos + 1));
+                assignments[key] = remove_quotes_and_commas(value);
+            } else {
+                char eq;
+                stream >> eq;
+                std::string value;
+                stream >> value;
+                assignments[word] = remove_quotes_and_commas(value);
+            }
         }
-        return result;
+
+        if (assignments.empty()) {
+            throw std::invalid_argument("UPDATE query missing assignments.");
+        }
+
+        query->set_assignments(assignments);
+
+        return query;
+    }
+
+    std::unique_ptr<Query> parse_delete(std::istringstream& stream) {
+        std::string from_keyword, table;
+        stream >> from_keyword;
+
+        if (to_lower_case(from_keyword) != "from") {
+            throw std::invalid_argument("DELETE query missing 'FROM' keyword.");
+        }
+
+        stream >> table;
+        auto query = std::make_unique<DeleteQuery>();
+        query->set_table(table);
+
+        std::string next_keyword;
+        while (stream >> next_keyword) {
+            if (to_lower_case(next_keyword) == "where") {
+                parse_where(stream, *query);
+                break;
+            }
+        }
+
+        return query;
+    }
+
+    void parse_join(std::istringstream& stream, SelectQuery& query) {
+        std::string table2, on_keyword, condition;
+
+        stream >> table2 >> on_keyword;
+
+        if (to_lower_case(on_keyword) != "on") {
+            throw std::invalid_argument("JOIN clause missing 'ON' keyword.");
+        }
+
+        std::ostringstream condition_stream;
+        std::string word;
+
+        while (stream >> word) {
+            if (to_lower_case(word) == "where") {
+                parse_where(stream, query);
+                break;
+            }
+            condition_stream << word << " ";
+        }
+
+        query.set_join(query.table, table2, trim(condition_stream.str()));
+    }
+
+
+    void parse_where(std::istringstream& stream, Query& query) {
+        std::ostringstream conditions;
+        std::string word;
+
+        while (stream >> word) {
+            if (word.back() == ',') {
+                word.pop_back();
+            }
+            conditions << word << " ";
+        }
+
+        query.set_where(trim(conditions.str()));
+    }
+
+    std::map<std::string, std::string> parse_values(const std::string& values_str) {
+        std::map<std::string, std::string> values;
+        std::istringstream stream(values_str);
+        std::string key_value;
+        while (std::getline(stream, key_value, ',')) {
+            size_t eq_pos = key_value.find('=');
+            if (eq_pos != std::string::npos) {
+                std::string key = trim(key_value.substr(0, eq_pos));
+                std::string value = trim(key_value.substr(eq_pos + 1));
+                values[key] = value;
+            }
+        }
+        return values;
+    }
+
+    std::string to_lower_case(const std::string& str) {
+        std::string lower_str = str;
+        std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), ::tolower);
+        return lower_str;
+    }
+
+    std::string trim(const std::string& str) {
+        size_t first = str.find_first_not_of(" \t");
+        size_t last = str.find_last_not_of(" \t");
+        return (first == std::string::npos || last == std::string::npos) ? "" : str.substr(first, last - first + 1);
     }
 };
 
