@@ -124,7 +124,7 @@ public:
                 {
                     column.cells[i].reset();
                     column.cells.erase(std::next(column.cells.begin(), i));
-                    //column.cells.erase(column.cells.begin() + i);
+                    column.cells.erase(column.cells.begin() + i);
                 }
                 --i;
                 --rowCount;
