@@ -63,8 +63,10 @@ public:
         if (!joins.empty()) {
             std::cout << "Joins:\n";
             for (const auto& join : joins) {
-                std::cout << "  JOIN " << join.table1 << " WITH " << join.table2
-                          << " ON " << join.condition << "\n";
+                std::cout << "  JOIN " <<  std::endl
+                << "Table1: " << join.table1 << std::endl
+                <<" Table2: " << join.table2 << std::endl
+                << "Condition: " << join.condition << std::endl;
             }
         }
         if (!where_conditions.empty()) {

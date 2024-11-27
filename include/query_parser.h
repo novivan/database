@@ -69,8 +69,18 @@ private:
         return query;
     }
 
+    std::vector<std::string> split_by_comma(const std::string& str) {
+        std::vector<std::string> result;
+        std::istringstream stream(str);
+        std::string token;
+        while (std::getline(stream, token, ',')) {
+            result.push_back(trim(token));
+        }
+        return result;
+    }
+
     std::unique_ptr<Query> parse_insert(std::istringstream& stream) {
-        std::string into_keyword, table, values_str;
+        std::string into_keyword, table;
         stream >> into_keyword;
 
         if (to_lower_case(into_keyword) != "into") {
@@ -78,11 +88,41 @@ private:
         }
 
         stream >> table;
-        std::getline(stream, values_str);
+
+        std::string columns_part, values_part;
+        std::getline(stream, columns_part, ')');
+        stream >> into_keyword;
+        if(to_lower_case(into_keyword) != "values") {
+            throw std::invalid_argument("INSERT query missing 'VALUES' keyword.");
+        }
+
+        std::getline(stream, values_part, ')');
+
+        columns_part = trim(columns_part);
+        values_part = trim(values_part);
+
+        if (columns_part.find('(') == std::string::npos || values_part.find('(') == std::string::npos) {
+            throw std::invalid_argument("Invalid INSERT syntax. Expected (columns) VALUES (values).");
+        }
+
+        columns_part = columns_part.substr(columns_part.find('(') + 1);
+        values_part = values_part.substr(values_part.find('(') + 1);
+
+        std::vector<std::string> columns = split_by_comma(columns_part);
+        std::vector<std::string> values = split_by_comma(values_part);
+
+        if (columns.size() != values.size()) {
+            throw std::invalid_argument("Number of columns does not match number of values.");
+        }
+
+        std::map<std::string, std::string> column_value_map;
+        for (size_t i = 0; i < columns.size(); ++i) {
+            column_value_map[trim(columns[i])] = remove_quotes_and_commas(trim(values[i]));
+        }
 
         auto query = std::make_unique<InsertQuery>();
         query->set_table(table);
-        query->set_values(parse_values(values_str));
+        query->set_values(column_value_map);
 
         return query;
     }
