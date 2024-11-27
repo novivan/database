@@ -15,6 +15,7 @@ public:
         stream >> query_type;
         query_type = to_lower_case(query_type);
 
+
         if (query_type == "select") {
             return parse_select(stream);
         } else if (query_type == "insert") {
@@ -23,6 +24,7 @@ public:
             return parse_update(stream);
         } else if (query_type == "delete") {
             return parse_delete(stream);
+
         } else {
             throw std::invalid_argument("Unsupported query type: " + query_type);
         }

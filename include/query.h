@@ -54,6 +54,7 @@ public:
 
     void print() const override {
         std::cout << "Query Type: SELECT\n";
+
         std::cout << "Columns: ";
         for (const auto& col : columns) {
             std::cout << col << " ";
