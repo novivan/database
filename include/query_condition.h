@@ -1,6 +1,7 @@
 #ifndef QUERY_CONDITION_H
 #define QUERY_CONDITION_H
-/*
+
+
 #include <string>
 #include <functional>
 #include <utility>
@@ -8,11 +9,12 @@
 #include <stack>
 #include <sstream>
 
-#include "column.h"
-#include "cells.h"
+//#include "column.h"
+//#include "cells.h"
 
 
 class QueryCondition;
+/*
 enum class CompareOperator {
     DEFAULT,
     EQUAL,
@@ -179,3 +181,4 @@ std::shared_ptr<QueryCondition> get_condition_tree(const std::string &str) {
 
 */
 #endif // QUERY_CONDITION_H
+

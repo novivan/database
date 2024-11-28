@@ -15,15 +15,15 @@ public:
     virtual void set_where(const std::string& condition) = 0;
 };
 
-struct JoinClause {
-    std::string table1;
-    std::string table2;
-    std::string condition;
+    struct JoinClause {
+        std::string table1;
+        std::string table2;
+        std::string condition;
 
-    JoinClause() = default;
-    JoinClause(const std::string& t1, const std::string& t2, const std::string& cond)
-        : table1(t1), table2(t2), condition(cond) {}
-};
+        JoinClause() = default;
+        JoinClause(const std::string& t1, const std::string& t2, const std::string& cond)
+            : table1(t1), table2(t2), condition(cond) {}
+    };
 
 class SelectQuery : public Query {
 public:

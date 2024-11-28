@@ -7,14 +7,18 @@
 #include <sstream>
 
 #include "table.h"
+#include "query_parser.h"
 
 //TODO: добавть недостающий функционал из "../что добавить в database.txt"
 
+int select_counter = 0;
 
 class Database
 {
 public:
     std::unordered_map<std::string, Table> tables;
+
+    QueryParser parser;
 
     Database() = default;
 
@@ -205,4 +209,58 @@ public:
         }
         return tables[newTableName] = tables.at(tableName1).join(newTableName, tables.at(tableName2), condition);
     }
+
+    /*
+    
+    Table translate_n_execute(std::string query) {
+        std::unique_ptr<Query> qry;
+        qry = parser.parse(query);
+        std::vector<const std::type_info*> QueryTypes(4);
+        QueryTypes[0] = &typeid(SelectQuery);
+        QueryTypes[1] =  &typeid(InsertQuery);
+        QueryTypes[2] =  &typeid(UpdateQuery);
+        QueryTypes[3] =  &typeid(DeleteQuery);
+
+        std::unique_ptr<SelectQuery> select_query;
+        std::unique_ptr<InsertQuery> insert_query;
+        std::unique_ptr<UpdateQuery> update_query;
+        std::unique_ptr<DeleteQuery> delete_query;
+
+        int query_type = std::find(QueryTypes.begin(), QueryTypes.end(), &typeid(*qry)) - QueryTypes.begin();
+        switch(query_type) {
+            case(0) : // SELECT
+                select_query = std::make_unique<SelectQuery>(qry);
+                if (select_query->joins.empty()) {
+                    return select("Select_number_" + std::to_string(select_counter++), select_query->table, select_query->columns, select_query->where_conditions); // тут(3-м параметром) должна быть фунция переводящая строку в дерево условий
+                } else {
+                    join(select_query->joins[0].table1 + "&" + select_query->joins[0].table2, select_query->joins[0].table1, select_query->joins[0].table2,  select_query->joins[0].condition); // тут(4-м параметром) должна быть фунция переводящая строку в дерево условий
+                    return select("Select_number_" + std::to_string(select_counter++), select_query->joins[0].table1 + "&" + select_query->joins[0].table2, select_query->columns, select_query->where_conditions); // тут(3-м параметром) должна быть фунция переводящая строку в дерево условий
+                }
+                break;
+            case(1) : // INSERT
+                insert_query = std::make_unique<InsertQuery>(qry);
+                std::unordered_map<std::string, std::shared_ptr<Cell>> values = dump_map(insert_query->values); // dump_map - функция переводящая map<std::string, std::string> в unordered_map<std::string, std::shared_ptr<Cell>> 
+                                                                                                      // (Потому что нужно привести данные к нормальному виду(Line), а не к стрроке)
+                Line insertlinу(values);
+                insert(insert_query->table, insertlinу);
+                return (tables[insert_query->table]);
+                //instructuions
+                break;
+            case(2) : // UPDATE
+                update_query = std::make_unique<UpdateQuery>(qry);
+                std::unordered_map<std::string, std::function<std::shared_ptr<Cell>(std::shared_ptr<Cell>)>> transformations = parse_transformations(update_query->assignments); // parse_transformations - функция переводящая map<std::string, std::string> в unordered_map<std::string, std::function<std::shared_ptr<Cell>(std::shared_ptr<Cell>)>>
+                                                                                                                                                                                  // Тут тоже нормальный вид - не строка!(это функция)
+                update(update_query->table, transformations, update_query->where_conditions); // тут(3-м параметром) должна быть фунция переводящая строку в дерево условий
+                return (tables[update_query->table]);
+                //instructuions
+                break;
+            case(3) : // DELETE
+                delete_query = std::make_unique<DeleteQuery>(qry);
+                remove(delete_query->table, delete_query->where_conditions);  // тут(2-м параметром) должна быть фунция переводящая строку в дерево условий
+                return (tables[delete_query->table]);
+                //instructuions
+                break;
+        }
+    }
+    */
 };

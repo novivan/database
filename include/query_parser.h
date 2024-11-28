@@ -1,14 +1,21 @@
 #ifndef QUERY_PARSER_H
 #define QUERY_PARSER_H
 
-#include "query.h"
+
 #include <sstream>
 #include <stdexcept>
 #include <memory>
 #include <algorithm>
 
+#include "query.h"
+#include "query_condition.h"
+
+
+
 class QueryParser {
 public:
+    QueryParser() = default;
+
     std::unique_ptr<Query> parse(const std::string& query) {
         std::istringstream stream(query);
         std::string query_type;
