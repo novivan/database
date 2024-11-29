@@ -33,6 +33,9 @@ public:
     std::string where_conditions;
 
     SelectQuery() = default;
+    SelectQuery(std::unique_ptr<Query> query) {
+        *this = dynamic_cast<SelectQuery&>(*query);
+    }
 
     std::string get_type() const override { return "SELECT"; }
 
@@ -81,6 +84,9 @@ public:
     std::map<std::string, std::string> values;
 
     InsertQuery() = default;
+    InsertQuery(std::unique_ptr<Query> base_query) {
+        *this = dynamic_cast<InsertQuery&>(*base_query);
+    }
 
     std::string get_type() const override { return "INSERT"; }
 
@@ -111,6 +117,9 @@ public:
     std::string where_conditions;
 
     UpdateQuery() = default;
+    UpdateQuery(std::unique_ptr<Query> base_query) {
+        *this = dynamic_cast<UpdateQuery&>(*base_query);
+    }
 
     std::string get_type() const override { return "UPDATE"; }
 
@@ -145,6 +154,9 @@ public:
     std::string where_conditions;
 
     DeleteQuery() = default;
+    DeleteQuery(std::unique_ptr<Query> base_query) {
+        *this = dynamic_cast<DeleteQuery&>(*base_query);
+    }
 
     std::string get_type() const override { return "DELETE"; }
 
