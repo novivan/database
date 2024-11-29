@@ -124,7 +124,7 @@ public:
                 for (auto& [columnName, column] : columns) 
                 {
                     column.cells[i].reset();
-                    column.cells.erase(std::next(column.cells.begin(), i));
+                    //column.cells.erase(std::next(column.cells.begin(), i));
                     column.cells.erase(column.cells.begin() + i);
                 }
                 --i;

@@ -211,24 +211,29 @@ public:
     }
 
     /*
-    
     Table translate_n_execute(std::string query) {
         std::unique_ptr<Query> qry;
-        qry = parser.parse(query);
-        std::vector<const std::type_info*> QueryTypes(4);
+        try
+        {
+            qry = std::make_unique<Query>(parser.parse(query));
+            std::vector<const std::type_info*> QueryTypes(4);
+        } 
+        catch 
+        {
+            std::cout << "Invalid query\n";
+            return tables[""];
+        }
+        
         QueryTypes[0] = &typeid(SelectQuery);
         QueryTypes[1] =  &typeid(InsertQuery);
         QueryTypes[2] =  &typeid(UpdateQuery);
         QueryTypes[3] =  &typeid(DeleteQuery);
 
-        std::unique_ptr<SelectQuery> select_query;
-        std::unique_ptr<InsertQuery> insert_query;
-        std::unique_ptr<UpdateQuery> update_query;
-        std::unique_ptr<DeleteQuery> delete_query;
 
         int query_type = std::find(QueryTypes.begin(), QueryTypes.end(), &typeid(*qry)) - QueryTypes.begin();
         switch(query_type) {
             case(0) : // SELECT
+                std::unique_ptr<SelectQuery> select_query;
                 select_query = std::make_unique<SelectQuery>(qry);
                 if (select_query->joins.empty()) {
                     return select("Select_number_" + std::to_string(select_counter++), select_query->table, select_query->columns, select_query->where_conditions); // тут(3-м параметром) должна быть фунция переводящая строку в дерево условий
@@ -238,6 +243,7 @@ public:
                 }
                 break;
             case(1) : // INSERT
+                std::unique_ptr<InsertQuery> insert_query;
                 insert_query = std::make_unique<InsertQuery>(qry);
                 std::unordered_map<std::string, std::shared_ptr<Cell>> values = dump_map(insert_query->values); // dump_map - функция переводящая map<std::string, std::string> в unordered_map<std::string, std::shared_ptr<Cell>> 
                                                                                                       // (Потому что нужно привести данные к нормальному виду(Line), а не к стрроке)
@@ -247,6 +253,8 @@ public:
                 //instructuions
                 break;
             case(2) : // UPDATE
+                std::unique_ptr<UpdateQuery> update_query;
+
                 update_query = std::make_unique<UpdateQuery>(qry);
                 std::unordered_map<std::string, std::function<std::shared_ptr<Cell>(std::shared_ptr<Cell>)>> transformations = parse_transformations(update_query->assignments); // parse_transformations - функция переводящая map<std::string, std::string> в unordered_map<std::string, std::function<std::shared_ptr<Cell>(std::shared_ptr<Cell>)>>
                                                                                                                                                                                   // Тут тоже нормальный вид - не строка!(это функция)
@@ -255,6 +263,8 @@ public:
                 //instructuions
                 break;
             case(3) : // DELETE
+                std::unique_ptr<DeleteQuery> delete_query;
+
                 delete_query = std::make_unique<DeleteQuery>(qry);
                 remove(delete_query->table, delete_query->where_conditions);  // тут(2-м параметром) должна быть фунция переводящая строку в дерево условий
                 return (tables[delete_query->table]);
@@ -263,4 +273,19 @@ public:
         }
     }
     */
+    
 };
+
+
+/*
+// Пример функции для преобразования строки в дерево условий для двух Line
+std::function<bool(const Line&, const Line&)> parse_condition(const std::string& condition) {
+    // Реализация функции преобразования строки в дерево условий
+    // Здесь вы можете добавить свою логику для парсинга строки и создания функции
+    return [condition](const Line& line1, const Line& line2) -> bool {
+        // Пример простой проверки условия
+        // В реальной реализации здесь будет более сложная логика
+        
+        //return line1["column_name"]->toString() == condition;
+    };
+}*/
