@@ -7,7 +7,6 @@
 #include <vector>
 #include <cmath>
 
-// Token types
 enum class TokenType {
     IDENTIFIER,
     NUMBER,
@@ -56,7 +55,7 @@ public:
                 return operator_token();
             }
 
-            if (std::isalpha(current_char_) || current_char_ == '_') {
+            if (std::isalpha(current_char_) || current_char_ == '_' || current_char_ == '.') {
                 return identifier_or_keyword();
             }
 
@@ -99,7 +98,6 @@ private:
         op += current_char_;
         advance();
 
-        // Handle multi-character operators
         if ((op == "!" || op == "=" || op == "<" || op == ">") && current_char_ == '=') {
             op += current_char_;
             advance();
@@ -110,7 +108,7 @@ private:
 
     Token identifier_or_keyword() {
         std::string result;
-        while (current_char_ != '\0' && (std::isalnum(current_char_) || current_char_ == '_')) {
+        while (current_char_ != '\0' && (std::isalnum(current_char_) || current_char_ == '_' || current_char_ == '.')) {
             result += current_char_;
             advance();
         }
@@ -149,7 +147,7 @@ private:
             throw std::runtime_error("Unterminated string literal");
         }
 
-        advance(); // Consume closing quote
+        advance();
         return Token{TokenType::STRING, result};
     }
 
@@ -381,7 +379,6 @@ private:
     }
 };
 
-
 class ComparisonNode : public ASTNode {
 public:
     ComparisonNode(const std::string& op, ASTNodePtr left, ASTNodePtr right)
@@ -424,7 +421,6 @@ private:
     ASTNodePtr left_;
     ASTNodePtr right_;
 };
-
 
 class BinaryOpNode : public ASTNode {
 public:

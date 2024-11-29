@@ -151,9 +151,9 @@ void run_query_tests() {
 }
 
 void test_conditional_execute() {
-    std::string condition = "(age*2)/2-2+4-2 - 100 > 30 AND city = 'New York'";
+    std::string condition = "(users.age*2)/2-2+4-2  > 30 AND city = 'New York'";
     std::map<std::string, std::string> variables = {
-        {"age", "35"},
+        {"users.age", "35"},
         {"city", "New York"}
     };
 
