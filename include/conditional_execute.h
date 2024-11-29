@@ -2,7 +2,6 @@
 #include <sstream>
 #include <cctype>
 #include <stdexcept>
-#include <memory>
 #include <algorithm>
 #include <vector>
 #include <cmath>
@@ -671,11 +670,13 @@ private:
     }
 };
 
-bool evaluate_condition(const std::string& condition,
-                        const std::map<std::string, std::string>& variables) {
+ASTNodePtr parse_condition(const std::string& condition) {
     Lexer lexer(condition);
     Parser parser(lexer);
-    auto ast = parser.parse_expression();
+    return parser.parse_expression();
+}
+
+bool check_conditional(const ASTNodePtr& ast, const std::map<std::string, std::string>& variables) {
     Value result = ast->evaluate(variables);
     return result.as_number() != 0.0;
 }

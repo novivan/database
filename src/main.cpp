@@ -158,7 +158,8 @@ void test_conditional_execute() {
     };
 
     try {
-        bool result = evaluate_condition(condition, variables);
+        ASTNodePtr ast = parse_condition(condition);
+        bool result = check_conditional(ast, variables);
         std::cout << "Condition is " << (result ? "True" : "False") << std::endl;
     } catch (const std::exception& ex) {
         std::cerr << "Error evaluating condition: " << ex.what() << std::endl;
