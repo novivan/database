@@ -7,9 +7,11 @@ include_directories(include)
 
 file(GLOB SOURCES src/*.cpp)
 
-add_executable(memorydb ${SOURCES})
+add_executable(memorydb ${SOURCES}
+        include/conditional_execute.h)
 
-set(TEST_SOURCES tests/test.cpp)
+set(TEST_SOURCES tests/test.cpp
+        include/conditional_execute.h)
 
 find_package(GTest REQUIRED)
 

@@ -72,6 +72,7 @@ int main() {
 
 
 #include "../include/database.h"
+#include "../include/conditional_execute.h"
 
 
 //#include <../include/table.h>
@@ -149,6 +150,21 @@ void run_query_tests() {
     }
 }
 
+void test_conditional_execute() {
+    std::string condition = "(age*2)/2-2+4-2 - 100 > 30 AND city = 'New York'";
+    std::map<std::string, std::string> variables = {
+        {"age", "35"},
+        {"city", "New York"}
+    };
+
+    try {
+        bool result = evaluate_condition(condition, variables);
+        std::cout << "Condition is " << (result ? "True" : "False") << std::endl;
+    } catch (const std::exception& ex) {
+        std::cerr << "Error evaluating condition: " << ex.what() << std::endl;
+    }
+}
+
 
 void testUpdate(Database& db) {
     std::cout << "Testing UPDATE..." << std::endl;
@@ -223,7 +239,7 @@ int main() {
     std::cout << "testAddRow passed." << std::endl;
 
 
-    
+
     Line line2;
     line2.addCell("id", std::make_shared<CellInt>(2));
     line2.addCell("is_admin", std::make_shared<CellBool>(true));
@@ -335,8 +351,11 @@ int main() {
     db.~Database();
     //users.~Table();
 
+
     std::cout << "Running tests for QueryParser...\n\n";
     run_query_tests();
+
+    test_conditional_execute();
 
     std::cout << "All tests passed." << std::endl;
 
