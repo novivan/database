@@ -177,4 +177,36 @@ public:
     }
 };
 
+class CreateQuery : public Query {
+public:
+    std::string table;
+    std::vector<std::pair<std::string, int>> columns;
+
+    CreateQuery() = default;
+    CreateQuery(std::unique_ptr<Query> base_query) {
+        *this = dynamic_cast<CreateQuery&>(*base_query);
+    }
+
+    std::string get_type() const override { return "CREATE"; }
+
+    void set_table(const std::string& tbl) override {
+        table = tbl;
+    }
+
+    void set_columns(const std::vector<std::pair<std::string, int>>& cols) {
+        columns = cols;
+    }
+
+    void set_where(const std::string&) override {}
+
+    void print() const override {
+        std::cout << "Query Type: CREATE\n";
+        std::cout << "Table: " << table << "\n";
+        std::cout << "Columns:\n";
+        for (const auto& [name, type] : columns) {
+            std::cout << "  " << name << " : " << type << "\n";
+        }
+    }
+};
+
 #endif // QUERY_H

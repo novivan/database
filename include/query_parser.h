@@ -31,7 +31,8 @@ public:
             return parse_update(stream);
         } else if (query_type == "delete") {
             return parse_delete(stream);
-
+        } else if (query_type == "create") {
+            return parse_create(stream);
         } else {
             throw std::invalid_argument("Unsupported query type: " + query_type);
         }
@@ -196,6 +197,47 @@ private:
         return query;
     }
 
+    std::unique_ptr<CreateQuery> parse_create(std::istringstream& stream) {
+        std::string table_keyword, table_name;
+        stream >> table_keyword >> table_name;
+
+        if (to_lower_case(table_keyword) != "table") {
+            throw std::invalid_argument("Invalid CREATE query");
+        }
+
+        std::vector<std::pair<std::string, int>> columns;
+        std::string column_def;
+        while (std::getline(stream, column_def, ',')) {
+            size_t pos = column_def.find(':');
+            if (pos == std::string::npos) {
+                throw std::invalid_argument("Invalid column definition");
+            }
+            std::string column_name = column_def.substr(0, pos);
+            std::string column_type_str = column_def.substr(pos + 1);
+            int column_type;
+
+            if (column_type_str == "int32") {
+                column_type = 1;
+            } else if (column_type_str.find("string[") == 0) {
+                column_type = 2;
+            } else if (column_type_str.find("bytes[") == 0) {
+                column_type = 3;
+            } else if (column_type_str == "bool" || column_type_str == "bool=true" || column_type_str == "bool=false") {
+                column_type = 4;
+            } else {
+                throw std::invalid_argument("Unknown column type: " + column_type_str);
+            }
+
+            columns.emplace_back(column_name, column_type);
+        }
+
+        auto query = std::make_unique<CreateQuery>();
+        query->set_table(table_name);
+        query->set_columns(columns);
+
+        return query;
+    }
+
     std::unique_ptr<Query> parse_delete(std::istringstream& stream) {
         std::string from_keyword, table;
         stream >> from_keyword;
@@ -284,5 +326,7 @@ private:
         return (first == std::string::npos || last == std::string::npos) ? "" : str.substr(first, last - first + 1);
     }
 };
+
+
 
 #endif // QUERY_PARSER_H
