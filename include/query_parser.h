@@ -217,13 +217,13 @@ private:
             int column_type;
 
             if (column_type_str == "int32") {
-                column_type = 1;
+                column_type = 0;
             } else if (column_type_str.find("string[") == 0) {
                 column_type = 2;
             } else if (column_type_str.find("bytes[") == 0) {
                 column_type = 3;
             } else if (column_type_str == "bool" || column_type_str == "bool=true" || column_type_str == "bool=false") {
-                column_type = 4;
+                column_type = 1;
             } else {
                 throw std::invalid_argument("Unknown column type: " + column_type_str);
             }
