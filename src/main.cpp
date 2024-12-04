@@ -158,31 +158,33 @@ int main() {
     */
     db.printTable("users");
 
-    std::cout << "testAddColumn passed." << std::endl;
+    //std::cout << "testAddColumn passed." << std::endl;
     
     // Вставляем строки
-    Line line1;
-    line1.addCell("id", std::make_shared<CellInt>(1));
-    line1.addCell("is_admin", std::make_shared<CellBool>(false));
-    line1.addCell("login", std::make_shared<CellString>("vasya"));
-    line1.addCell("password_hash", std::make_shared<CellBytes>(std::vector<uint8_t>{0xde, 0xad, 0xbe, 0xef}));
-    //db.tables["users"].insert(line1);
-    db.insert("users", line1);
-    //users.insert(line1);
+    //Line line1;
+    //line1.addCell("id", std::make_shared<CellInt>(1));
+    //line1.addCell("is_admin", std::make_shared<CellBool>(false));
+    //line1.addCell("login", std::make_shared<CellString>("vasya"));
+    //line1.addCell("password_hash", std::make_shared<CellBytes>(std::vector<uint8_t>{0xde, 0xad, 0xbe, 0xef}));
+
+    //db.insert("users", line1);
+
+    db.translate_n_execute("INSERT INTO users (id, is_admin, login, password_hash) VALUES (1, false, \'vasya\', 0xdeadbeef)");
+
 
     db.printTable("users");
     //users.printTable();
     std::cout << "testAddRow passed." << std::endl;
 
+    db.translate_n_execute("INSERT INTO users (id, is_admin, login, password_hash) VALUES (2, true, \'admin\', 0xcafebabe)");
 
-
-    Line line2;
-    line2.addCell("id", std::make_shared<CellInt>(2));
-    line2.addCell("is_admin", std::make_shared<CellBool>(true));
-    line2.addCell("login", std::make_shared<CellString>("admin"));
-    line2.addCell("password_hash", std::make_shared<CellBytes>(std::vector<uint8_t>{0xca, 0xfe, 0xba, 0xbe}));
+    //Line line2;
+    //line2.addCell("id", std::make_shared<CellInt>(2));
+    //line2.addCell("is_admin", std::make_shared<CellBool>(true));
+    //line2.addCell("login", std::make_shared<CellString>("admin"));
+    //line2.addCell("password_hash", std::make_shared<CellBytes>(std::vector<uint8_t>{0xca, 0xfe, 0xba, 0xbe}));
     //db.tables["users"].insert(line2);
-    db.insert("users", line2);
+    //db.insert("users", line2);
     //users.insert(line2);
 
     db.printTable("users");

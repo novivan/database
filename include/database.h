@@ -276,17 +276,35 @@ public:
    
     
 };
-
+int to_int(const char& c) {
+    if (c <= '9' && c >= '0') {
+        return c - '0';
+    } else {
+        return c - 'a' + 10;
+    }
+}
 
 std::unordered_map<std::string, std::shared_ptr<Cell>> dump_map(std::map<std::string, std::string> values) {
     std::unordered_map<std::string, std::shared_ptr<Cell>> result;
     for (auto& [key, value] : values) {
         if (value == "true" || value == "false") {
             result[key] = std::make_shared<CellBool>(value == "true");
-        } else if (value.front() == '\'' && value.back() == '\'') {
-            result[key] = std::make_shared<CellString>(value.substr(1, value.size() - 2));
-        } else {
+        } 
+        else if (value[0] == '0' && value[1] == 'x') {
+            std::string bytes;
+            for (size_t i = 2; i < value.size(); i += 2) {
+                bytes.push_back(to_int(value[i]) / 8 + '0');
+                bytes.push_back((to_int(value[i]) % 8) / 4  + '0');
+                bytes.push_back((to_int(value[i]) % 4) / 2 + '0');
+                bytes.push_back(to_int(value[i]) % 2 + '0');
+            }
+            result[key] = std::make_shared<CellBytes>(bytes);
+
+        }
+        else if (value[0] <= '9' && value[0] >= '0') {
             result[key] = std::make_shared<CellInt>(std::stoi(value));
+        } else {
+            result[key] = std::make_shared<CellString>(value);
         }
     }
     return result;
