@@ -142,8 +142,11 @@ int main() {
     // Создаем таблицу
     //Table users("users");
     Database db;
-    db.createTable("users", {{"id", 0}, {"is_admin", 1}, {"login", 2}, {"password_hash", 3}});
-    //users.printTable();
+
+
+    // Создаем таблицу
+    //db.createTable("users", {{"id", 0}, {"is_admin", 1}, {"login", 2}, {"password_hash", 3}});
+    db.translate_n_execute("CREATE TABLE users id:int32, is_admin:bool, login:string[32], password_hash:bytes[32]");
 
     std::cout << "testTableCreation passed." << std::endl;
     

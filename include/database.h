@@ -233,11 +233,12 @@ public:
             return tables[""];
         }
 
-        std::vector<const std::type_info*> QueryTypes(4);
+        std::vector<const std::type_info*> QueryTypes(5);
         QueryTypes[0] = &typeid(SelectQuery);
         QueryTypes[1] = &typeid(InsertQuery);
         QueryTypes[2] = &typeid(UpdateQuery);
         QueryTypes[3] = &typeid(DeleteQuery);
+        QueryTypes[4] = &typeid(CreateQuery);
 
         int query_type = std::find(QueryTypes.begin(), QueryTypes.end(), &typeid(*qry)) - QueryTypes.begin();
         if (query_type == 0) { // SELECT
@@ -263,6 +264,10 @@ public:
             std::unique_ptr<DeleteQuery> delete_query = std::make_unique<DeleteQuery>(std::move(qry));
             remove(delete_query->table, parse_select_condition(delete_query->where_conditions));
             return tables[delete_query->table];
+        } else if (query_type == 4) { // CREATE
+            std::unique_ptr<CreateQuery> create_query = std::make_unique<CreateQuery>(std::move(qry));
+            createTable(create_query->table, create_query->columns);
+            return tables[create_query->table];
         } else {
             throw std::runtime_error("Неизвестный тип запроса");
         }

@@ -24,9 +24,9 @@ public:
 
     Table(const std::string& tableName) : name(tableName) {
         columns.clear();
-    }
+    } 
 
-    void addColumn(const std::string& columnName, int type) 
+    void addColumn(const std::string &columnName, int type) 
     {
         columns[columnName] = Column(type);
     }
@@ -193,7 +193,9 @@ public:
         }
         std::cout << std::endl;
 
+
         size_t numRows = columns.begin()->second.cells.size();
+        
         for (size_t i = 0; i < numRows; ++i) {
             for (const auto& column : columns) {
                 if (column.second.cells[i] == nullptr) {

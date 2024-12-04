@@ -58,6 +58,8 @@ private:
             std::string column_type_str = column_def.substr(pos + 1);
             int column_type;
 
+            //column_type_str = to_lower_case(column_type_str);
+
             if (column_type_str == "int32") {
                 column_type = 0;
             } else if (column_type_str.find("string[") == 0) {
