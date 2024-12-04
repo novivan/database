@@ -251,8 +251,8 @@ public:
         } else if (query_type == 1) { // INSERT
             std::unique_ptr<InsertQuery> insert_query = std::make_unique<InsertQuery>(std::move(qry));
             std::unordered_map<std::string, std::shared_ptr<Cell>> values = dump_map(insert_query->values);
-            Line insertlinу(values);
-            insert(insert_query->table, insertlinу);
+            Line insertline(values);
+            insert(insert_query->table, insertline);
             return tables[insert_query->table];
         } else if (query_type == 2) { // UPDATE
             std::unique_ptr<UpdateQuery> update_query = std::make_unique<UpdateQuery>(std::move(qry));
