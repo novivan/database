@@ -244,7 +244,8 @@ public:
         if (query_type == 0) { // SELECT
             std::unique_ptr<SelectQuery> select_query = std::make_unique<SelectQuery>(std::move(qry));
             if (select_query->joins.empty()) {
-                return select("Select_number_" + std::to_string(select_counter++), select_query->table, select_query->columns, parse_select_condition(select_query->where_conditions));
+                const std::function<bool(const Line&)>& cndtn = parse_select_condition(select_query->where_conditions);
+                return select("Select_number_" + std::to_string(select_counter++), select_query->table, select_query->columns, cndtn);
             } else {
                 join(select_query->joins[0].table1 + "&" + select_query->joins[0].table2, select_query->joins[0].table1, select_query->joins[0].table2, parse_join_condition(select_query->joins[0].condition, select_query->joins[0].table1, select_query->joins[0].table2));
                 return select("Select_number_" + std::to_string(select_counter++), select_query->joins[0].table1 + "&" + select_query->joins[0].table2, select_query->columns, parse_select_condition(select_query->where_conditions));
@@ -613,14 +614,14 @@ std::function<bool(const Line&)> parse_select_condition(const std::string& condi
         std::stack<std::string> ops;
 
         auto apply_op = [](bool a, bool b, const std::string& op) -> bool {
-            if (op == "&&") return a && b;
-            if (op == "||") return a || b;
+            if (op == "&&" || op == "AND" || op == "and") return a && b;
+            if (op == "||" || op == "OR" || op == "or") return a || b;
             throw std::invalid_argument("Unsupported logical operator");
         };
 
         auto precedence = [](const std::string& op) -> int {
-            if (op == "||") return 1;
-            if (op == "&&") return 2;
+            if (op == "||" || op == "OR" || op == "or") return 1;
+            if (op == "&&" || op == "AND" || op == "and") return 2;
             return 0;
         };
 
@@ -633,7 +634,7 @@ std::function<bool(const Line&)> parse_select_condition(const std::string& condi
 
         std::string token;
         while (stream >> token) {
-            if (token == "&&" || token == "||") {
+            if (token == "||" || token == "OR" || token == "or" || token == "&&" || token == "AND" || token == "and") {
                 while (!ops.empty() && precedence(ops.top()) >= precedence(token)) {
                     process_operator();
                 }
@@ -695,7 +696,25 @@ std::function<bool(const Line&)> parse_select_condition(const std::string& condi
                     if (auto cellInt = std::dynamic_pointer_cast<CellInt>(cell)) {
                         result = cellInt->data >= std::stoi(value);
                     }
-                } else {
+                } else if (op == "") {
+
+                    if (auto cellInt = std::dynamic_pointer_cast<CellInt>(cell)) {
+                        result = cellInt->data != 0;
+                    } else if (auto cellBool = std::dynamic_pointer_cast<CellBool>(cell)) {
+                        result = cellBool->data;
+                    } else if (auto cellString = std::dynamic_pointer_cast<CellString>(cell)) {
+                        result = cellString->data != "";
+                    } else if (auto cellBytes = std::dynamic_pointer_cast<CellBytes>(cell)) {
+                        bool flg = false;
+                        for (auto byte : cellBytes->data) {
+                            if (byte != '0') {
+                                flg = true;
+                                break;
+                            }
+                        }
+                        result = flg;
+                    }
+                }else {
                     throw std::invalid_argument("Unsupported operation or type in condition: " + condition);
                 }
 

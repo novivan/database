@@ -139,74 +139,36 @@ void testUpdate(Database& db) {
 }
 
 int main() {
-    // Создаем таблицу
-    //Table users("users");
     Database db;
 
 
     // Создаем таблицу
-    //db.createTable("users", {{"id", 0}, {"is_admin", 1}, {"login", 2}, {"password_hash", 3}});
     db.translate_n_execute("CREATE TABLE users id:int32, is_admin:bool, login:string[32], password_hash:bytes[32]");
 
     std::cout << "testTableCreation passed." << std::endl;
-    
-    /*// Добавляем столбцы
-    users.addColumn("id", 0);
-    users.addColumn("is_admin", 1);
-    users.addColumn("login", 2);
-    users.addColumn("password_hash", 3);
-    */
     db.printTable("users");
-
-    //std::cout << "testAddColumn passed." << std::endl;
     
-    // Вставляем строки
-    //Line line1;
-    //line1.addCell("id", std::make_shared<CellInt>(1));
-    //line1.addCell("is_admin", std::make_shared<CellBool>(false));
-    //line1.addCell("login", std::make_shared<CellString>("vasya"));
-    //line1.addCell("password_hash", std::make_shared<CellBytes>(std::vector<uint8_t>{0xde, 0xad, 0xbe, 0xef}));
-
-    //db.insert("users", line1);
 
     db.translate_n_execute("INSERT INTO users (id, is_admin, login, password_hash) VALUES (1, false, \'vasya\', 0xdeadbeef)");
 
 
     db.printTable("users");
-    //users.printTable();
     std::cout << "testAddRow passed." << std::endl;
 
     db.translate_n_execute("INSERT INTO users (id, is_admin, login, password_hash) VALUES (2, true, \'admin\', 0xcafebabe)");
 
-    //Line line2;
-    //line2.addCell("id", std::make_shared<CellInt>(2));
-    //line2.addCell("is_admin", std::make_shared<CellBool>(true));
-    //line2.addCell("login", std::make_shared<CellString>("admin"));
-    //line2.addCell("password_hash", std::make_shared<CellBytes>(std::vector<uint8_t>{0xca, 0xfe, 0xba, 0xbe}));
-    //db.tables["users"].insert(line2);
-    //db.insert("users", line2);
-    //users.insert(line2);
-
     db.printTable("users");
-    //users.printTable();
     std::cout << "second testAddRow passed." << std::endl;
-
     std::cout << "testSaveToFile:\n";
     // Создаем вторую таблицу
-    db.createTable("products", {{"product_id", 0}, {"product_name", 2}, {"price", 0}});
+
+    db.translate_n_execute("CREATE TABLE products product_id:int32, product_name:string[32], price:int32");
+    
+    
 
     // Вставляем строки во вторую таблицу
-    Line product1;
-    product1.addCell("product_id", std::make_shared<CellInt>(1));
-    product1.addCell("product_name", std::make_shared<CellString>("Laptop"));
-    product1.addCell("price", std::make_shared<CellInt>(1000));
-    db.insert("products", product1);
-
-    Line product2;
-    product2.addCell("product_id", std::make_shared<CellInt>(2));
-    product2.addCell("product_name", std::make_shared<CellString>("Smartphone"));
-    product2.addCell("price", std::make_shared<CellInt>(500));
-    db.insert("products", product2);
+    db.translate_n_execute("INSERT INTO products (product_id, product_name, price) VALUES (1, \'Laptop\', 1000)");
+    db.translate_n_execute("INSERT INTO products (product_id, product_name, price) VALUES (2, \'Smartphone\', 500)");
 
     db.printTable("products");
 
@@ -214,7 +176,7 @@ int main() {
 
 
     db.saveToFile("../data.csv");
-    //db.saveToFile("../data.csv");
+    
     std::cout << "testSaveToFile passed.\n";
     
     //ЭТО ПОКА НЕ РАБОТАЕТ ;(
@@ -237,12 +199,16 @@ int main() {
     
 
     std::cout << "testPrintTable passed." << std::endl;
-    
+
+    //db.tables["selected_users"] = db.translate_n_execute("SELECT id, login FROM users WHERE is_admin OR id < 10");
     auto selected = db.select("selected_users", "users", {"id", "login"}, [](const Line& line) {
         bool isAdmin = std::static_pointer_cast<CellBool>(line.cells.at("is_admin"))->data;
         int id = std::static_pointer_cast<CellInt>(line.cells.at("id"))->data;
         return isAdmin || id < 10;
     });
+    
+
+    
     // Печатаем результаты SELECT
     std::cout << "Selected users:" << std::endl;
     //selected.printTable();
