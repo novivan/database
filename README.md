@@ -1,4 +1,17 @@
 # database
+---
+## инфа для проверяющего
+### как собрать
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+дальше просто запускаем нужную цель сборки
+---
+## инфа для команды
+
 [memdb.pdf](https://github.com/user-attachments/files/17811270/memdb.pdf)
 
 Schema:
