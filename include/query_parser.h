@@ -81,39 +81,37 @@ private:
 
         return query;
     }
-    std::unique_ptr<Query> parse_select(std::istringstream& stream) {
-        std::vector<std::string> columns;
-        std::string word;
+    std::unique_ptr<SelectQuery> parse_select(std::istringstream& stream) {
+        std::string columns_part, from_keyword, table_or_join, where_keyword, condition;
 
-        while (stream >> word) {
-            if (to_lower_case(word) == "from") {
-                break;
-            }
-            columns.push_back(remove_quotes_and_commas(word));
+        std::getline(stream, columns_part, ' ');
+        while (to_lower_case(columns_part) != "from") {
+            std::string next_part;
+            stream >> next_part;
+            columns_part += " " + next_part;
         }
+        columns_part = columns_part.substr(0, columns_part.size() - 5);
+        columns_part = trim(columns_part);
+        std::vector<std::string> columns = split_by_comma(columns_part);
 
-        if (columns.empty()) {
-            throw std::invalid_argument("SELECT query missing columns.");
-        }
-
-        std::string table;
-        stream >> table;
+        std::getline(stream, table_or_join);
+        table_or_join = trim(table_or_join);
 
         auto query = std::make_unique<SelectQuery>();
         query->set_columns(columns);
-        query->set_table(table);
 
-        std::string next_keyword;
-        while (stream >> next_keyword) {
-            next_keyword = to_lower_case(next_keyword);
-            if (next_keyword == "join") {
-                parse_join(stream, *query);
-            } else if (next_keyword == "where") {
-                parse_where(stream, *query);
-                break;
-            } else {
-                throw std::invalid_argument("Unexpected keyword in SELECT query: " + next_keyword);
+        if (to_lower_case(table_or_join).find("join") != std::string::npos) {
+            parse_join(stream, *query);
+        } else {
+            query->set_table(table_or_join);
+        }
+
+        if (stream >> where_keyword) {
+            if (to_lower_case(where_keyword) != "where") {
+                throw std::invalid_argument("Unexpected keyword in SELECT query: " + where_keyword);
             }
+            std::getline(stream, condition);
+            query->set_where(trim(condition));
         }
 
         return query;
